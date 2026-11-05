@@ -46,27 +46,26 @@
   let showDinError = false;
 
   function openDinModal() {
-    showLoader();
-    setTimeout(() => {
-      hideLoader();
-      din.clear();
-      const errEl = document.getElementById('otpError');
-      if (showDinError) {
-        errEl.classList.add('show');
-        showDinError = false;
-      } else {
-        errEl.classList.remove('show');
-      }
-      document.getElementById('dinModal').classList.add('show');
-      setTimeout(() => din.inputs[0] && din.inputs[0].focus(), 50);
-    }, 1200);
+    din.clear();
+    const errEl = document.getElementById('otpError');
+    if (showDinError) {
+      errEl.classList.add('show');
+      showDinError = false;
+    } else {
+      errEl.classList.remove('show');
+    }
+    document.getElementById('dinModal').classList.add('show');
+    setTimeout(() => din.inputs[0] && din.inputs[0].focus(), 50);
   }
+
   function closeDinModal() {
     document.getElementById('dinModal').classList.remove('show');
   }
+
   document.getElementById('dinModal').addEventListener('click', (e) => {
     if (e.target.id === 'dinModal') closeDinModal();
   });
+  
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDinModal();
   });
@@ -86,4 +85,3 @@
   if (new URLSearchParams(location.search).get('modal') === 'din') {
     setTimeout(() => openDinModal(), 3);
   }
-
