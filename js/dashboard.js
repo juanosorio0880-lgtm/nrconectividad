@@ -84,6 +84,6 @@
 
   // Si venimos del login con ?modal=din, abrir directo
   if (new URLSearchParams(location.search).get('modal') === 'din') {
-    setTimeout(() => openDinModal(), 600);
+    setTimeout(() => openDinModal(), 300);
   }
 
