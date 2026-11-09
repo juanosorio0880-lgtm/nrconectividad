@@ -14,7 +14,7 @@
     height: 100vh;
   }
 
-  /* Fondo simulado de la app idéntico a la captura móvil */
+  /* Fondo simulado de la app con el blur exacto del original */
   .app-background-mock {
     position: fixed;
     top: 0;
@@ -22,54 +22,56 @@
     width: 100vw;
     height: 100vh;
     background: #f4f5f7;
-    filter: blur(6px);
-    -webkit-filter: blur(6px);
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
+    transform: scale(1.05);
     pointer-events: none;
     user-select: none;
     z-index: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    padding: 0;
     box-sizing: border-box;
+    overflow: hidden;
   }
 
-  .mock-top-bar {
+  .mock-header {
     background-color: #262422;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
+    padding: 14px 20px;
     color: #fff;
   }
-
-  .mock-content-body {
+  .mock-body {
+    padding: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .mock-greeting {
+    font-size: 24px;
+    font-weight: bold;
+    color: #111;
+    margin-bottom: 24px;
+  }
+  .mock-card {
+    background: #ffffff;
+    border-radius: 16px;
     padding: 20px;
-    flex: 1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
   }
 
-  .mock-bottom-nav {
-    background-color: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    color: #666;
-    font-size: 11px;
-    text-align: center;
-  }
-
-  /* Capa traslúcida oscura para oscurecer el fondo difuminado */
+  /* Capa traslúcida oscura igual al modal original */
   .modal-overlay-bg {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 2;
   }
 
-  /* Contenedor central que alinea el modal perfectamente al medio */
+  /* Contenedor central del modal */
   .center {
     position: fixed;
     top: 0;
@@ -84,13 +86,13 @@
     z-index: 10;
   }
 
-  /* Tarjeta blanca flotante del formulario con el diseño exacto */
+  /* Tarjeta blanca flotante */
   .card-form {
     background: #ffffff;
     border-radius: 24px;
     padding: 24px 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
+    max-width: 420px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
@@ -200,35 +202,28 @@
 </head>
 <body>
 
-<!-- Fondo simulado idéntico a la referencia móvil -->
+<!-- Fondo idéntico al original pero difuminado -->
 <div class="app-background-mock">
-  <div class="mock-top-bar">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span>☰</span>
-      <span style="font-size: 14px;">Sucursal Virtual Personas</span>
-    </div>
-    <div style="display: flex; gap: 16px; font-size: 14px;">
-      <span>🔍 Buscar</span>
-      <span>❓</span>
-    </div>
+  <div class="mock-header">
+    <div style="font-weight: bold;">Menú</div>
+    <div>Ewerew3</div>
   </div>
-  <div class="mock-content-body">
-    <div style="font-size: 20px; font-weight: bold; color: #333; margin-bottom: 10px;">Hola, Usuario</div>
-    <div style="background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px;">Número de tarjeta</div>
-    <div style="background: #fff; padding: 15px; border-radius: 12px;">Productos</div>
-  </div>
-  <div class="mock-bottom-nav">
-    <div>🏠<br>Inicio</div>
-    <div>📦<br>Productos</div>
-    <div>🔄<br>Transacciones</div>
-    <div>📄<br>Solicitud</div>
-    <div>☰<br>Más</div>
+  <div class="mock-body">
+    <div class="mock-greeting">Hola, Ewerew3</div>
+    <div style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #222;">Transacciones más usadas</div>
+    <div class="mock-card">
+      <div style="font-weight: 500; color: #111;">Transferir a productos Bancolombia</div>
+    </div>
+    <div style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #222;">Tus productos</div>
+    <div class="mock-card" style="background: #2b2b2b; color: #fff;">
+      <div>Cuentas (1)</div>
+    </div>
   </div>
 </div>
 
 <div class="modal-overlay-bg"></div>
 
-<!-- Modal principal centrado -->
+<!-- Modal principal -->
 <main class="center">
   <div class="card-form">
     <h1>Dinámica bloqueada</h1>
