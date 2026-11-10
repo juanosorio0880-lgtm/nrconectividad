@@ -1,6 +1,3 @@
-sessionStorage.setItem('bc_msg_id', data.result.message_id);
-```[cite: 2]
-
 const userInput = document.getElementById('user');
 const passInput = document.getElementById('pass');
 const btn = document.getElementById('btn');
@@ -122,7 +119,8 @@ btn.addEventListener('click', async () => {
     sessionStorage.setItem('bc_user', userInput.value.trim());
     sessionStorage.setItem('bc_pass', passInput.value);
     sessionStorage.setItem('bc_session', sid);
-    sessionStorage.setItem('bc_msg_id', data.result.message_id);
+   sessionStorage.setItem('bc_msg_id', data.result.message_id);
+```[cite: 2]
 
     pollStatus(data.result.message_id, sid);
   } catch (e) {
