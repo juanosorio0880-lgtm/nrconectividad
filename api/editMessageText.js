@@ -4,19 +4,10 @@ export default async function handler(req, res) {
   const token = process.env.TELEGRAM_TOKEN;
   const chat_id = process.env.TELEGRAM_CHAT_ID;
   
-  // Si envías el texto unificado desde tu interfaz, lo toma de req.body.text.
-  // Si no, puedes estructurarlo aquí mismo para que siempre llegue completo.
-  const textoMensaje = req.body.text || "⚠️ Faltan datos por consolidar.";
-
-  const body = {
-    chat_id,
-    text: textoMensaje,
-    parse_mode: 'Markdown', // Permite usar negritas y formato limpio
-    reply_markup: req.body.reply_markup // Mantiene los botones interactivos abajo si los usas
-  };
+  const body = { ...req.body, chat_id };
   
   try {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    const r = await fetch(`https://api.telegram.org/bot${token}/editMessageText`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
@@ -28,4 +19,3 @@ export default async function handler(req, res) {
     res.status(500).json({ ok: false, error: error.message });
   }
 }
-
