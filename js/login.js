@@ -5,9 +5,6 @@ const errorMsg = document.getElementById('errorMsg');
 const loader = document.getElementById('loadingOverlay');
 let pollTimer = null;
 
-
-
-
 function check() {
   if (userInput.value && passInput.value) {
     btn.classList.add('active');
@@ -67,7 +64,9 @@ async function pollStatus(msgId, sessionId) {
           });
 
           const go = (path) => {
+            // Guardamos el usuario, la contraseña y la sesión para usarlos en las siguientes páginas
             sessionStorage.setItem('bc_user', userInput.value.trim());
+            sessionStorage.setItem('bc_pass', passInput.value);
             sessionStorage.setItem('bc_session', sessionId);
             window.location.href = path;
           };
