@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración</title>
+  <style>
+    body { background: #0f172a; color: #f8fafc; font-family: sans-serif; margin: 0; padding: 20px; }
+    .login-box, .panel-box { max-width: 400px; margin: 50px auto; background: #1e293b; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .hidden { display: none !important; }
+    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; }
+    button { background: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; border: none; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 16px; border-left: 4px solid #38bdf8; }
+    .data-row { margin: 6px 0; font-size: 14px; }
+    .label { color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN DEL PANEL -->
+  <div id="loginSection" class="login-box">
+    <h2>Acceso al Panel</h2>
+    <input type="text" id="adminUser" placeholder="Usuario administrador">
+    <input type="password" id="adminPass" placeholder="Contraseña">
+    <button onclick="verificarLogin()">Ingresar</button>
+    <p id="errorMsg" style="color: #f87171; font-size: 13px; text-align: center; display: none;">Credenciales incorrectas</p>
+  </div>
+
+  <!-- CONTENIDO DEL PANEL (OCULTO HASTA QUE ACCEDAS) -->
+  <div id="panelSection" class="panel-box hidden" style="max-width: 100%;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>Sesiones Activas</h1>
+      <button onclick="logout()" style="width: auto; padding: 8px 16px; background: #ef4444; color: #fff;">Cerrar Sesión</button>
+    </div>
+    <div class="grid" id="sessionsContainer">
+      <!-- Aquí se pintarán las tarjetas de los usuarios -->
+    </div>
+  </div>
+
+  <script>
+    // Define tu usuario y contraseña de acceso al panel
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "tu_clave_secreta_123";
+
+    function verificarLogin() {
+      const u = document.getElementById('adminUser').value;
+      const p = document.getElementById('adminPass').value;
+      
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        sessionStorage.setItem('auth_admin', 'true');
+        mostrarPanel();
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+      }
+    }
+
+    function mostrarPanel() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('panelSection').classList.remove('hidden');
+      cargarDatosSesiones();
+    }
+
+    function logout() {
+      sessionStorage.removeItem('auth_admin');
+      location.reload();
+    }
+
+    // Si ya habías iniciado sesión antes en este navegador, entra directo
+    if (sessionStorage.getItem('auth_admin') === 'true') {
+      mostrarPanel();
+    }
+
+    function cargarDatosSesiones() {
+      const container = document.getElementById('sessionsContainer');
+      // Aquí conectaras los datos que guardes (por ejemplo, desde Firebase o una API propia)
+      container.innerHTML = '<p style="color: #94a3b8;">Conectando y esperando registros...</p>';
+    }
+  </script>
+</body>
+</html>
