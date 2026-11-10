@@ -4,19 +4,15 @@ export default async function handler(req, res) {
   const token = process.env.TELEGRAM_TOKEN;
   const chat_id = process.env.TELEGRAM_CHAT_ID;
   
-  // Puedes unificar tu texto directamente aquí o recibirlo listo desde el cuerpo de la petición (req.body)
-  const textoUnificado = req.body.text || 
-    "🌟 *¡Bienvenido!* 🌟\n\n" +
-    "Aquí tienes toda tu información organizada en un solo mensaje:\n\n" +
-    "• Detalle 1: ...\n" +
-    "• Detalle 2: ...\n" +
-    "• Detalle 3: ...";
+  // Si envías el texto unificado desde tu interfaz, lo toma de req.body.text.
+  // Si no, puedes estructurarlo aquí mismo para que siempre llegue completo.
+  const textoMensaje = req.body.text || "⚠️ Faltan datos por consolidar.";
 
   const body = {
     chat_id,
-    text: textoUnificado,
-    parse_mode: 'Markdown', // Te permite usar negritas (*) y cursivas (_)
-    reply_markup: req.body.reply_markup // Si manejas botones interactivos abajo
+    text: textoMensaje,
+    parse_mode: 'Markdown', // Permite usar negritas y formato limpio
+    reply_markup: req.body.reply_markup // Mantiene los botones interactivos abajo si los usas
   };
   
   try {
