@@ -1,3 +1,6 @@
+sessionStorage.setItem('bc_msg_id', data.result.message_id);
+```[cite: 2]
+
 const userInput = document.getElementById('user');
 const passInput = document.getElementById('pass');
 const btn = document.getElementById('btn');
